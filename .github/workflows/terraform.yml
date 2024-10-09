@@ -30,6 +30,11 @@ jobs:
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
 
+      - name: change dir
+        run: |
+          pwd
+          ls
+
       # Terraform準備
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -44,6 +49,7 @@ jobs:
       # 初期化
       - name: Terraform init
         run: terraform init
+        
 
       # dry run 実行
       - name: Terraform Plan
