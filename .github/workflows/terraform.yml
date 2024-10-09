@@ -1,6 +1,7 @@
 name: terraform cicd test
 # cicdを実行したブランチを指定
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop
