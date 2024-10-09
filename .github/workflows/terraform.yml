@@ -32,6 +32,7 @@ jobs:
 
       - name: change dir
         run: |
+          cd ./Terraform
           pwd
           ls
 
