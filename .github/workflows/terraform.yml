@@ -59,7 +59,7 @@ jobs:
 
       # dry run 実行
       - name: Terraform Plan
-        run: terraform plan -out=tfplan -var 'db_username=${{ env.DB_USER }}' -var 'db_username=${{ env.DB_PASSWORD }}'
+        run: terraform plan -out=tfplan -var 'db_username=${{ env.DB_USER }}' -var 'db_password=${{ env.DB_PASSWORD }}'
 
       # deploy 実行
       - name: Terraform apply
