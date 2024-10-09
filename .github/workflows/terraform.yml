@@ -63,4 +63,4 @@ jobs:
 
       # deploy 実行
       - name: Terraform apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -var 'db_username=${{ env.DB_USER }}' -var 'db_password=${{ env.DB_PASSWORD }}'
