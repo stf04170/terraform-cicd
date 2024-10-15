@@ -12,7 +12,7 @@ resource "aws_iam_role" "lambda_role" {
           Service = "lambda.amazonaws.com"
         }
         Effect = "Allow"
-        Sid = ""
+        Sid    = ""
       },
     ]
   })
@@ -21,7 +21,7 @@ resource "aws_iam_role" "lambda_role" {
 resource "aws_iam_policy" "lambda_policy" {
   name        = "${local.prefix}-lambda-policy"
   description = "Policy for Lambda function to access required resources"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -63,7 +63,11 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      TEST_STR = "test"
+      DB_HOST_PORT = try(aws_db_instance.postgres.endpoint, null),
+      DB_NAME      = "postgres"
+      DB_USER      = var.db_password
+      DB_PASSWORD  = var.db_username
+
     }
   }
 }

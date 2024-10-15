@@ -26,3 +26,7 @@ variable "db_username" {
 variable "db_password" {
   description = "Password for the RDS postgres instance"
 }
+
+variable "stage_name" {
+  default = "stg"
+}

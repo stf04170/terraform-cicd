@@ -9,7 +9,7 @@ resource "aws_db_instance" "postgres" {
   storage_type            = "gp2"
   engine                  = "postgres"
   engine_version          = "16.3"
-  instance_class          = "db.t3.small"
+  instance_class          = "db.t3.micro"
   password                = var.db_password
   username                = var.db_username
   backup_retention_period = 0
