@@ -44,9 +44,19 @@ resource "aws_iam_role_policy_attachment" "lambda_role_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_vpc_policy_attachment" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
+# Lambdaレイヤーのアップロード
+resource "aws_lambda_layer_version" "psycopg2_layer" {
+  layer_name          = "psycopg2_layer"
+  filename            = "../src/layer/psycopg2_layer.zip"
+  compatible_runtimes = ["python3.10"] # 使用するランタイム
+}
 
 # Resource
-
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "../src/lambda"
@@ -58,17 +68,23 @@ resource "aws_lambda_function" "api" {
   function_name    = "${local.prefix}-api"
   role             = aws_iam_role.lambda_role.arn
   handler          = "index.lambda_handler"
-  runtime          = "python3.11"
+  runtime          = "python3.10"
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
   timeout          = 60
+
+  vpc_config {
+    subnet_ids         = [aws_subnet.my_subnet1.id]
+    security_group_ids = [aws_security_group.rds_sg.id]
+  }
+
+  layers = [aws_lambda_layer_version.psycopg2_layer.arn]
 
   environment {
     variables = {
       DB_HOST_PORT = try(aws_db_instance.postgres.endpoint, null),
       DB_NAME      = "postgres"
-      DB_USER      = var.db_password
-      DB_PASSWORD  = var.db_username
-
+      DB_USER      = var.db_username
+      DB_PASSWORD  = var.db_password
     }
   }
 }

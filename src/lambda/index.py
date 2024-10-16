@@ -1,12 +1,18 @@
 import json
 import psycopg2
 import os
+from datetime import datetime
 
 # 環境変数から接続情報を取得
-DB_HOST = os.environ["DB_HOST"].split(":")[0]
+DB_HOST = os.environ["DB_HOST_PORT"].split(":")[0]
 DB_NAME = os.environ["DB_NAME"]
 DB_USER = os.environ["DB_USER"]
 DB_PASSWORD = os.environ["DB_PASSWORD"]
+
+
+def datetime_converter(o):
+    if isinstance(o, datetime):
+        return o.isoformat()
 
 
 def get_db_connection():
@@ -49,17 +55,28 @@ def read_user(user_id):
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM users")  # WHERE user_id = %s", (user_id,))
-    user = cursor.fetchone()
+    user = cursor.fetchall()
+    column_names = [desc[0] for desc in cursor.description]
+
+    results = []
+    for u in user:
+        results.append(dict(zip(column_names, u)))
+
+    # JSON形式に変換
+    json_results = json.dumps(results, default=datetime_converter)
+
     cursor.close()
     connection.close()
-    return {"statusCode": 200, "body": json.dumps(user)}
+
+    return {"statusCode": 200, "body": json_results}
 
 
 def update_user(user_id, user):
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
-        "UPDATE users SET name = %s, email = %s, password_hash = %s WHERE user_id = %s",
+        "UPDATE users SET name = %s, email = %s, password_hash = %s \
+            WHERE user_id = %s",
         (user["name"], user["email"], user["password_hash"], user_id),
     )
     connection.commit()

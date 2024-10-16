@@ -9,18 +9,17 @@ CREATE TABLE users (
 );
 
 -- updated_atを自動更新するためのトリガーを作成
-CREATE
-OR REPLACE FUNCTION update_updated_at_column() RETURNS TRIGGER AS $ $ BEGIN NEW.updated_at = CURRENT_TIMESTAMP;
-
-RETURN NEW;
-
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
 END;
+$$ language 'plpgsql';
 
-$ $ language 'plpgsql';
-
-CREATE TRIGGER update_users_updated_at BEFORE
-UPDATE
-    ON users FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+CREATE TRIGGER update_users_updated_at
+BEFORE UPDATE ON users
+FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
 INSERT INTO users (name, email, password_hash, created_at, updated_at, phone_number) VALUES
     ('Alice Smith', 'alice.smith@example.com', 'hashed_password_1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '123-456-7890'),
