@@ -58,8 +58,9 @@ resource "aws_lambda_function" "api" {
   function_name    = "${local.prefix}-api"
   role             = aws_iam_role.lambda_role.arn
   handler          = "index.lambda_handler"
-  runtime          = "python3.10"
+  runtime          = "python3.11"
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  timeout          = 60
 
   environment {
     variables = {

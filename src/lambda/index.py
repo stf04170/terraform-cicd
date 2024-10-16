@@ -3,7 +3,7 @@ import psycopg2
 import os
 
 # 環境変数から接続情報を取得
-DB_HOST = os.environ["DB_HOST"]
+DB_HOST = os.environ["DB_HOST"].split(":")[0]
 DB_NAME = os.environ["DB_NAME"]
 DB_USER = os.environ["DB_USER"]
 DB_PASSWORD = os.environ["DB_PASSWORD"]
@@ -22,7 +22,8 @@ def lambda_handler(event, context):
     if operation == "create":
         return create_user(event["user"])
     elif operation == "read":
-        return read_user(event["user_id"])
+        # return read_user(event["user_id"])
+        return read_user(event.get("user_id", None))
     elif operation == "update":
         return update_user(event["user_id"], event["user"])
     elif operation == "delete":
