@@ -60,7 +60,7 @@ resource "aws_lambda_layer_version" "psycopg2_layer" {
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "../src/lambda"
-  output_path = "api.zip"
+  output_path = "../src/lambda/api.zip"
 }
 
 resource "aws_lambda_function" "api" {

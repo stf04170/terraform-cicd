@@ -23,22 +23,45 @@ def get_db_connection():
 
 
 def lambda_handler(event, context):
-    operation = event.get("operation", "read")
+    print(event)
+    path = event.get("resource", None)
+    method = event.get("httpMethod", None)
 
-    if operation == "create":
-        return create_user(event["user"])
-    elif operation == "read":
-        # return read_user(event["user_id"])
-        return read_user(event.get("user_id", None))
-    elif operation == "update":
-        return update_user(event["user_id"], event["user"])
-    elif operation == "delete":
-        return delete_user(event["user_id"])
+    if path == "/api/users":
+        if method == "GET":
+            return read_user()
+        elif method == "POST":
+            return create_user(event)
+        else:
+            return {"statusCode": 400, "body": json.dumps("Invalid method")}
+    elif path == "/api/user/{user_id}":
+        user_id_str = event.get("pathParameters", []).get("user_id", None)
+        print(user_id_str)
+        if not user_id_str or not user_id_str.isdecimal():
+            return {"statusCode": 400, "body": json.dumps("Invalid user_id")}
+
+        if method == "GET":
+            return read_user(int(user_id_str))
+        elif method == "PUT":
+            return update_user(int(user_id_str), event)
+        elif method == "DELETE":
+            return delete_user(int(user_id_str))
+        else:
+            return {"statusCode": 400, "body": json.dumps("Invalid method")}
     else:
-        return {"statusCode": 400, "body": json.dumps("Invalid operation")}
+        return {"statusCode": 400, "body": json.dumps("Invalid request")}
 
 
-def create_user(user):
+def create_user(event):
+    if not event.get("body"):
+        return {"statusCode": 400, "body": json.dumps("Cannot found User data")}
+    json_str = event.get("body", [])
+    print(json_str)
+    user = json.loads(json_str)
+
+    if "name" not in user or "email" not in user or "password_hash" not in user:
+        return {"statusCode": 400, "body": json.dumps("Incorrect User data")}
+
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute(
@@ -51,10 +74,13 @@ def create_user(user):
     return {"statusCode": 201, "body": json.dumps("User created successfully")}
 
 
-def read_user(user_id):
+def read_user(user_id=None):
     connection = get_db_connection()
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users")  # WHERE user_id = %s", (user_id,))
+    if not user_id:
+        cursor.execute("SELECT * FROM users")
+    else:
+        cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
     user = cursor.fetchall()
     column_names = [desc[0] for desc in cursor.description]
 
@@ -63,7 +89,9 @@ def read_user(user_id):
         results.append(dict(zip(column_names, u)))
 
     # JSON形式に変換
-    json_results = json.dumps(results, default=datetime_converter)
+    json_results = (
+        json.dumps(results, default=datetime_converter) if results else "No Data"
+    )
 
     cursor.close()
     connection.close()
@@ -71,14 +99,43 @@ def read_user(user_id):
     return {"statusCode": 200, "body": json_results}
 
 
-def update_user(user_id, user):
+def update_user(user_id, event):
+    if not event.get("body"):
+        return {"statusCode": 400, "body": json.dumps("Cannot found User data")}
+    json_str = event.get("body", [])
+    print(json_str)
+    user = json.loads(json_str)
+
     connection = get_db_connection()
     cursor = connection.cursor()
+
+    # 更新するカラムとその値を保持するリスト
+    columns = []
+    values = []
+
+    if "name" in user:
+        columns.append("name = %s")
+        values.append(user["name"])
+    if "email" in user:
+        columns.append("email = %s")
+        values.append(user["email"])
+    if "password_hash" in user:
+        columns.append("password_hash = %s")
+        values.append(user["password_hash"])
+
+    # カラムが指定されていない場合はエラーメッセージを返す
+    if not columns:
+        return {"statusCode": 400, "body": json.dumps("No fields to update")}
+
+    # SET句をカンマで結合
+    set_clause = ", ".join(columns)
+
+    # SQL文を実行
     cursor.execute(
-        "UPDATE users SET name = %s, email = %s, password_hash = %s \
-            WHERE user_id = %s",
-        (user["name"], user["email"], user["password_hash"], user_id),
+        f"UPDATE users SET {set_clause} WHERE user_id = %s",
+        (*values, user_id),  # user_idを最後に追加
     )
+
     connection.commit()
     cursor.close()
     connection.close()
