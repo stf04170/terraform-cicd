@@ -4,12 +4,12 @@
 
 # プリフィックスを設定
 variable "prefix" {
-  default = "tf-api-241001"
+  default = "tf-api-241018"
 }
 
 # プロジェクトを識別する一意の識別子を設定
 variable "project" {
-  default = "tf-api-241001-pj"
+  default = "tf-api-241018-pj"
 }
 
 # プロジェクトのオーナーを設定
