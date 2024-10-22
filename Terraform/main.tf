@@ -1,6 +1,3 @@
-# ------------------------------
-# Terraform configuration
-# ------------------------------
 terraform {
   # tfstateファイルを管理するようbackend(s3)を設定
   backend "s3" {
@@ -35,7 +32,6 @@ provider "aws" {
 # ------------------------------
 locals {
   # variables.tfから変数を取得
-  # terraformのworkspaceの一覧から該当するworkspace(dev,stg,prdなど)を取得
   prefix = "${var.prefix}-${terraform.workspace}"
   common_tags = {
     Environmnet = terraform.workspace
@@ -50,4 +46,3 @@ locals {
 # ------------------------------
 # 現在のAWS Regionの取得方法
 data "aws_region" "current" {}
-

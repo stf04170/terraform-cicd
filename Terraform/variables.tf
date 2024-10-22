@@ -27,6 +27,7 @@ variable "db_password" {
   description = "Password for the RDS postgres instance"
 }
 
+# ステージ名
 variable "stage_name" {
   default = "stg"
 }

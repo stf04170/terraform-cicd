@@ -1,5 +1,4 @@
 # IAM
-
 resource "aws_iam_role" "lambda_role" {
   name = "${local.prefix}-lambda-role"
 
@@ -34,7 +33,6 @@ resource "aws_iam_policy" "lambda_policy" {
         Effect   = "Allow"
         Resource = "*"
       },
-      # 他に必要な権限を追加することができます
     ]
   })
 }
@@ -49,14 +47,14 @@ resource "aws_iam_role_policy_attachment" "lambda_vpc_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
-# Lambdaレイヤーのアップロード
+# Lambdaレイヤー
 resource "aws_lambda_layer_version" "psycopg2_layer" {
   layer_name          = "psycopg2_layer"
   filename            = "../src/layer/psycopg2_layer.zip"
-  compatible_runtimes = ["python3.10"] # 使用するランタイム
+  compatible_runtimes = ["python3.10"]
 }
 
-# Resource
+# source
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "../src/lambda"
